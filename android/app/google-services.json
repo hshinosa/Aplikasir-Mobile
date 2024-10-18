@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "665596723196",
+    "project_id": "aplikasir-database",
+    "storage_bucket": "aplikasir-database.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:665596723196:android:32c444c1956d2a3468bc79",
+        "android_client_info": {
+          "package_name": "com.aplikasir.kulbet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWkPq7ed8GK1Lq0KY-unDhZPwUJM96Dag"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
