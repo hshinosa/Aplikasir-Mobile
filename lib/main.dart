@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasir/screen/homepage.dart';
-import 'package:aplikasir/screen/checkout_struk_hutang.dart';
+import 'package:aplikasir/screen/checkout_berhasil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -19,10 +19,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home : CheckoutStrukHutang()
-    );
+        debugShowCheckedModeBanner: false, home: CheckoutBerhasil());
   }
-
-  
 }
