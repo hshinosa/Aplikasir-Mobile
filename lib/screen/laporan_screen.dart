@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class ReportPage extends StatefulWidget {
   @override
@@ -45,8 +47,8 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                     Text(
                       'Laporan',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                          fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     Spacer(),
                   ],
@@ -107,7 +109,7 @@ class _ReportPageState extends State<ReportPage> {
                       ),
                       child: Text(
                         'Unduh Laporan',
-                        style: TextStyle(fontSize: 16),
+                        style: GoogleFonts.poppins(fontSize: 16),
                       ),
                     ),
                   ],
@@ -150,13 +152,13 @@ class _ReportPageState extends State<ReportPage> {
                               children: [
                                 Text(
                                   '1',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24),
                                 ),
                                 Text(
                                   'Jumlah Transaksi',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14),
                                 ),
@@ -204,13 +206,13 @@ class _ReportPageState extends State<ReportPage> {
                               children: [
                                 Text(
                                   'Rp.30.000',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24),
                                 ),
                                 Text(
                                   'Laba Rugi',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14),
                                 ),
@@ -258,13 +260,13 @@ class _ReportPageState extends State<ReportPage> {
                               children: [
                                 Text(
                                   'Rp.50.000',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 24),
                                 ),
                                 Text(
                                   'Pendapatan',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14),
                                 ),
@@ -279,7 +281,8 @@ class _ReportPageState extends State<ReportPage> {
                 ),
                 Text(
                   'Laporan Transaksi',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 SizedBox(
                   height: 10,
@@ -355,7 +358,8 @@ class _ReportPageState extends State<ReportPage> {
                 ),
                 Text(
                   'Penjualan Teratas',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 SizedBox(
                   height: 20,
@@ -381,11 +385,11 @@ class _ReportPageState extends State<ReportPage> {
                           children: [
                             Text(
                               'Produk',
-                              style: TextStyle(fontSize: 14),
+                              style: GoogleFonts.poppins(fontSize: 14),
                             ),
                             Text(
                               'Penjualan',
-                              style: TextStyle(fontSize: 14),
+                              style: GoogleFonts.poppins(fontSize: 14),
                             )
                           ],
                         ),
@@ -405,11 +409,11 @@ class _ReportPageState extends State<ReportPage> {
                             children: [
                               Text(
                                 'Kue',
-                                style: TextStyle(fontSize: 14),
+                                style: GoogleFonts.poppins(fontSize: 14),
                               ),
                               Text(
-                                'Rp.5000',
-                                style: TextStyle(
+                                formatCurrency(5000),
+                                style: GoogleFonts.poppins(
                                     fontSize: 14, color: Color(0xff286DE1)),
                               )
                             ],
@@ -421,11 +425,11 @@ class _ReportPageState extends State<ReportPage> {
                             children: [
                               Text(
                                 '10',
-                                style: TextStyle(fontSize: 14),
+                                style: GoogleFonts.poppins(fontSize: 14),
                               ),
                               Text(
                                 '0,2%',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                     fontSize: 14, color: Color(0xff219469)),
                               )
                             ],
@@ -447,11 +451,11 @@ class _ReportPageState extends State<ReportPage> {
                             children: [
                               Text(
                                 'Risol Enak Banget Cok',
-                                style: TextStyle(fontSize: 14),
+                                style: GoogleFonts.poppins(fontSize: 14),
                               ),
                               Text(
-                                'Rp.5000',
-                                style: TextStyle(
+                                formatCurrency(6000),
+                                style: GoogleFonts.poppins(
                                     fontSize: 14, color: Color(0xff286DE1)),
                               )
                             ],
@@ -463,11 +467,11 @@ class _ReportPageState extends State<ReportPage> {
                             children: [
                               Text(
                                 '10',
-                                style: TextStyle(fontSize: 14),
+                                style: GoogleFonts.poppins(fontSize: 14),
                               ),
                               Text(
                                 '0,2%',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                     fontSize: 14, color: Color(0xff219469)),
                               )
                             ],
@@ -484,4 +488,10 @@ class _ReportPageState extends State<ReportPage> {
       ),
     ));
   }
+}
+
+String formatCurrency(int amount) {
+  final format =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  return format.format(amount);
 }

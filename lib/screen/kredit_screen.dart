@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class CreditScreen extends StatelessWidget {
   const CreditScreen({super.key});
@@ -20,7 +22,8 @@ class CreditScreen extends StatelessWidget {
                 Padding(padding: EdgeInsets.only(left: 130)),
                 Text(
                   'Kredit',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                      fontSize: 20, fontWeight: FontWeight.bold),
                 )
               ],
             ),
@@ -32,11 +35,11 @@ class CreditScreen extends StatelessWidget {
               children: [
                 Text(
                   'Nama Pelanggan',
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  style: GoogleFonts.poppins(fontSize: 15, color: Colors.grey),
                 ),
                 Text(
                   'Andi',
-                  style: TextStyle(fontSize: 15),
+                  style: GoogleFonts.poppins(fontSize: 15),
                 ),
               ],
             ),
@@ -47,7 +50,8 @@ class CreditScreen extends StatelessWidget {
               children: [
                 Text(
                   'Lunas',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                      fontSize: 15, fontWeight: FontWeight.bold),
                 )
               ],
             ),
@@ -61,11 +65,12 @@ class CreditScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Tanggal Kredit',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
                     ),
                     Text(
                       '8/06/2024',
-                      style: TextStyle(fontSize: 16),
+                      style: GoogleFonts.poppins(fontSize: 16),
                     ),
                   ],
                 ),
@@ -73,11 +78,12 @@ class CreditScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Jatuh Tempo',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
                     ),
                     Text(
                       '8/06/2024',
-                      style: TextStyle(fontSize: 16),
+                      style: GoogleFonts.poppins(fontSize: 16),
                     ),
                   ],
                 )
@@ -93,11 +99,14 @@ class CreditScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Total Kredit',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
                     ),
                     Text(
-                      'Rp.7000',
-                      style: TextStyle(fontSize: 16),
+                      formatCurrency(
+                        7000,
+                      ),
+                      style: GoogleFonts.poppins(fontSize: 12),
                     ),
                   ],
                 ),
@@ -105,11 +114,12 @@ class CreditScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Belum Dibayar',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
                     ),
                     Text(
-                      'Rp.0',
-                      style: TextStyle(fontSize: 16),
+                      formatCurrency(0),
+                      style: GoogleFonts.poppins(fontSize: 12),
                     ),
                   ],
                 )
@@ -125,7 +135,8 @@ class CreditScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Lihat Struk Transaksi',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Icon(Icons.arrow_forward),
                 ],
@@ -136,4 +147,10 @@ class CreditScreen extends StatelessWidget {
       )),
     );
   }
+}
+
+String formatCurrency(int amount) {
+  final format =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  return format.format(amount);
 }
