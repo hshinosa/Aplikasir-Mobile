@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aplikasir/screen/homepage.dart';
-import 'package:aplikasir/screen/checkout_struk_hutang.dart';
+import 'package:aplikasir/screen/daftar_kredit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -18,11 +17,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home : CheckoutStrukHutang()
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: DaftarKredit());
   }
-
-  
 }
