@@ -16,7 +16,21 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SafeArea(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, size: 30),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Laporan',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
+      body: SafeArea(
       child: SingleChildScrollView(
         child: Center(
           // Menggunakan Center untuk memusatkan konten
@@ -28,29 +42,6 @@ class _ReportPageState extends State<ReportPage> {
               crossAxisAlignment:
                   CrossAxisAlignment.center, // Memusatkan secara horizontal
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        size: 30,
-                      ),
-                      onPressed: () {
-                        Navigator.pop(
-                            context); // Aksi untuk kembali ke halaman sebelumnya
-                      },
-                    ),
-                    SizedBox(
-                      width: 98,
-                    ),
-                    Text(
-                      'Laporan',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    Spacer(),
-                  ],
-                ),
                 SizedBox(height: 20), // Spasi antara elemen
                 Row(
                   mainAxisAlignment: MainAxisAlignment
@@ -396,7 +387,7 @@ class _ReportPageState extends State<ReportPage> {
                       Row(
                         children: [
                           Padding(padding: EdgeInsets.only(left: 20)),
-                          Image(image: AssetImage('assets/images/cake.png')),
+                          Image(image: AssetImage('assets/items/sendal.png')),
                           SizedBox(
                             width: 10,
                           ),
@@ -404,11 +395,11 @@ class _ReportPageState extends State<ReportPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Kue',
+                                'Sendal',
                                 style: TextStyle(fontSize: 14),
                               ),
                               Text(
-                                'Rp.5000',
+                                'Rp.12000',
                                 style: TextStyle(
                                     fontSize: 14, color: Color(0xff286DE1)),
                               )
@@ -438,7 +429,7 @@ class _ReportPageState extends State<ReportPage> {
                       Row(
                         children: [
                           Padding(padding: EdgeInsets.only(left: 20)),
-                          Image(image: AssetImage('assets/images/cake.png')),
+                          Image(image: AssetImage('assets/items/garam.png')),
                           SizedBox(
                             width: 10,
                           ),
@@ -446,7 +437,7 @@ class _ReportPageState extends State<ReportPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Risol Enak Banget Cok',
+                                'Garam 1kg',
                                 style: TextStyle(fontSize: 14),
                               ),
                               Text(

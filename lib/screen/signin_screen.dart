@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:aplikasir/screen/homepage.dart';
 import 'package:aplikasir/screen/signup_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
@@ -11,7 +12,7 @@ class SignInScreen extends StatefulWidget {
   final String? password;
 
   const SignInScreen({Key? key, this.username, this.password}) : super(key: key);
-  
+
   @override
   _SignInScreenState createState() => _SignInScreenState();
 }
@@ -19,6 +20,9 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
 
   final CollectionReference users = FirebaseFirestore.instance.collection('users');
 
@@ -31,7 +35,18 @@ class _SignInScreenState extends State<SignInScreen> {
     if (widget.password != null) {
       _passwordController.text = widget.password!;
     }
+    _initializeNotification();
   }
+
+void _initializeNotification() async {
+  const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings = InitializationSettings(
+    android: androidSettings,
+  );
+
+  await _flutterLocalNotificationsPlugin.initialize(initSettings);
+}
 
   String _hashPassword(String password) {
     final bytes = utf8.encode(password);
@@ -52,8 +67,7 @@ class _SignInScreenState extends State<SignInScreen> {
           .get();
 
       if (result.docs.isNotEmpty) {
-        final String userId = result.docs[0].id;
-
+        await _showLoginSuccessNotification();
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -89,6 +103,24 @@ class _SignInScreenState extends State<SignInScreen> {
           ],
         );
       },
+    );
+  }
+
+  Future<void> _showLoginSuccessNotification() async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'login_channel',
+      'Login Notifications',
+      channelDescription: 'Channel for login success notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+
+    await _flutterLocalNotificationsPlugin.show(
+      0,
+      'Login Berhasil',
+      'Anda berhasil masuk ke akun Anda',
+      platformDetails,
     );
   }
 

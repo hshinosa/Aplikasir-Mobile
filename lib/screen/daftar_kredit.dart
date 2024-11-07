@@ -109,7 +109,6 @@ class DaftarKredit extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const BackButton(),
             Expanded(
               child: Align(
                 alignment: Alignment.center,

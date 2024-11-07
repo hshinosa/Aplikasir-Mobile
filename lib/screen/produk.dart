@@ -64,6 +64,7 @@ class Produk extends StatelessWidget {
         centerTitle: true,
         elevation: 0, // Menghilangkan bayangan
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Color.fromRGBO(245, 245, 245, 1),
       body: SafeArea(
@@ -268,6 +269,7 @@ void _navigateToTambahProduk(BuildContext context) {
     ),
   );
 }
+
 
 class Product {
   final String name;

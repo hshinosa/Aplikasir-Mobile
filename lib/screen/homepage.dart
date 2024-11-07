@@ -1,3 +1,6 @@
+import 'package:aplikasir/screen/checkout.dart';
+import 'package:aplikasir/screen/kredit_list_screen.dart';
+import 'package:aplikasir/screen/transaksi_pilih.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -5,11 +8,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'produk.dart';
 import 'akun.dart';
 import 'laporan.dart';
+import 'package:aplikasir/screen/daftar_kredit.dart';
 
 class HomePage extends StatefulWidget {
   final int initialPageIndex; // Tambahkan parameter ini
 
-  const HomePage({Key? key, this.initialPageIndex = 0}) : super(key: key); // Inisialisasi default 0
+  const HomePage({Key? key, this.initialPageIndex = 0})
+      : super(key: key); // Inisialisasi default 0
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -32,11 +37,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialPageIndex; // Set sesuai dengan initialPageIndex
+    _selectedIndex =
+        widget.initialPageIndex; // Set sesuai dengan initialPageIndex
     _selectedTab = 0;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
-        statusBarIconBrightness: Brightness.light, // Warna ikon status bar menjadi gelap
+        statusBarIconBrightness:
+            Brightness.light, // Warna ikon status bar menjadi gelap
         statusBarBrightness: Brightness.light, // Untuk perangkat iOS
       ),
     );
@@ -73,10 +80,14 @@ class _HomePageState extends State<HomePage> {
               });
             },
             items: [
-              _buildBottomNavigationBarItem('assets/icons/home_nav_icon.png', 'Beranda', 0),
-              _buildBottomNavigationBarItem('assets/icons/stock_nav_icon.png', 'Produk', 1),
-              _buildBottomNavigationBarItem('assets/icons/report_nav_icon.png', 'Laporan', 2),
-              _buildBottomNavigationBarItem('assets/icons/user_nav_icon.png', 'Akun', 3),
+              _buildBottomNavigationBarItem(
+                  'assets/icons/home_nav_icon.png', 'Beranda', 0),
+              _buildBottomNavigationBarItem(
+                  'assets/icons/stock_nav_icon.png', 'Produk', 1),
+              _buildBottomNavigationBarItem(
+                  'assets/icons/report_nav_icon.png', 'Laporan', 2),
+              _buildBottomNavigationBarItem(
+                  'assets/icons/user_nav_icon.png', 'Akun', 3),
             ],
             selectedLabelStyle: GoogleFonts.poppins(
               fontSize: 12,
@@ -92,7 +103,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem(String assetPath, String label, int index) {
+  BottomNavigationBarItem _buildBottomNavigationBarItem(
+      String assetPath, String label, int index) {
     return BottomNavigationBarItem(
       icon: Image.asset(
         assetPath,
@@ -109,12 +121,14 @@ class HomeContent extends StatefulWidget {
   final int selectedTab;
   final Function(int) onTabChange;
 
-  HomeContent({Key? key, required this.selectedTab, required this.onTabChange}) : super(key: key);
+  HomeContent({Key? key, required this.selectedTab, required this.onTabChange})
+      : super(key: key);
 
   @override
   State<HomeContent> createState() => _HomeContentState();
 
-  static const Color kIconContainerBackgroundColor = Color.fromRGBO(245, 245, 245, 1);
+  static const Color kIconContainerBackgroundColor =
+      Color.fromRGBO(245, 245, 245, 1);
 }
 
 class _HomeContentState extends State<HomeContent> {
@@ -146,9 +160,48 @@ class _HomeContentState extends State<HomeContent> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildIconButton('assets/icons/qr_icon.png', 'QR'),
-                      _buildIconButton('assets/icons/credit_icon.png', 'Kredit'),
-                      _buildIconButton('assets/icons/customer_icon.png', 'Pelanggan'),
+                      _buildIconButton(
+                        'assets/icons/qr_icon.png',
+                        'QR',
+                        () {
+                          // Navigate to QR screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DaftarKredit(), // Replace with your QR screen class
+                            ),
+                          );
+                        },
+                      ),
+                      _buildIconButton(
+                        'assets/icons/credit_icon.png',
+                        'Kredit',
+                        () {
+                          // Navigate to DaftarKredit screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  KreditListScreen(), // Replace with your DaftarKredit screen class
+                            ),
+                          );
+                        },
+                      ),
+                      _buildIconButton(
+                        'assets/icons/customer_icon.png',
+                        'Pelanggan',
+                        () {
+                          // Navigate to Pelanggan screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DaftarKredit(), // Replace with your Pelanggan screen class
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -159,7 +212,8 @@ class _HomeContentState extends State<HomeContent> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Riwayat',
-              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                  fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
           Padding(
@@ -179,7 +233,8 @@ class _HomeContentState extends State<HomeContent> {
           Expanded(
             child: Column(
               children: [
-                SizedBox(height: 5), // Menambahkan jarak antara tab dan ListView
+                SizedBox(
+                    height: 5), // Menambahkan jarak antara tab dan ListView
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.all(16),
@@ -202,7 +257,12 @@ class _HomeContentState extends State<HomeContent> {
       floatingActionButton: Container(
         padding: EdgeInsets.only(bottom: 10),
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TransaksiScreen()),
+            );
+          },
           child: Image.asset(
             'assets/icons/shoppingcart_icon.png',
             width: 24,
@@ -216,28 +276,35 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   String formatRupiah(String amount) {
-    final number = double.tryParse(amount.replaceAll('Rp', '').replaceAll(',', '').replaceAll('.', '')) ?? 0;
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final number = double.tryParse(amount
+            .replaceAll('Rp', '')
+            .replaceAll(',', '')
+            .replaceAll('.', '')) ??
+        0;
+    final formatter =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return formatter.format(number);
   }
 
-
-  Widget _buildIconButton(String iconPath, String label) {
-    return Container(
-      width: 100,
-      padding: EdgeInsets.all(12),
-      child: Column(
-        children: [
-          Image.asset(iconPath, width: 60, height: 60),
-          SizedBox(height: 5),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: const Color.fromARGB(255, 13, 44, 70),
-              fontSize: 12,
+  Widget _buildIconButton(String iconPath, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap, // Trigger navigation when tapped
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Image.asset(iconPath, width: 60, height: 60),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: const Color.fromARGB(255, 13, 44, 70),
+                fontSize: 12,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -309,7 +376,8 @@ class _HomeContentState extends State<HomeContent> {
             fontSize: 12,
           ),
         ),
-        trailing: Text(formatRupiah(amount), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        trailing: Text(formatRupiah(amount),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -356,11 +424,17 @@ class _HomeContentState extends State<HomeContent> {
     if (widget.selectedTab == 0) {
       return transactions;
     } else if (widget.selectedTab == 1) {
-      return transactions.where((transaction) => transaction['category'] == 'Transaksi').toList();
+      return transactions
+          .where((transaction) => transaction['category'] == 'Transaksi')
+          .toList();
     } else if (widget.selectedTab == 2) {
-      return transactions.where((transaction) => transaction['category'] == 'Barang').toList();
+      return transactions
+          .where((transaction) => transaction['category'] == 'Barang')
+          .toList();
     } else if (widget.selectedTab == 3) {
-      return transactions.where((transaction) => transaction['category'] == 'Kredit').toList();
+      return transactions
+          .where((transaction) => transaction['category'] == 'Kredit')
+          .toList();
     }
     return transactions;
   }
@@ -386,7 +460,8 @@ class CustomShape extends StatelessWidget {
         // Logo positioning
         Positioned(
           left: 20, // Jarak dari kiri
-          top: height / 2 - 110, // Tengah vertikal (dikurangi setengah tinggi logo)
+          top: height / 2 -
+              110, // Tengah vertikal (dikurangi setengah tinggi logo)
           child: Image.asset(
             'assets/icons/logoaplikasir.png', // Ganti dengan path logo Anda
             width: 120, // Sesuaikan dengan ukuran yang diinginkan

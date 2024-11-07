@@ -33,7 +33,7 @@ class _TambahProdukState extends State<TambahProduk> {
     print('Harga Jual: $hargaJual');
 
     // Setelah menyimpan data, bisa navigasi kembali atau menampilkan pesan sukses
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => HomePage(initialPageIndex: 1),

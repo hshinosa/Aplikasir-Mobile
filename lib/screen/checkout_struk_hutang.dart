@@ -20,6 +20,13 @@ class CheckoutStrukHutang extends StatelessWidget {
       stock: 50,
       imagePath: "assets/items/gula.png",
     ),
+    Product(
+      name: "Sendal",
+      modalPrice: 12000,
+      sellPrice: 15000,
+      stock: 50,
+      imagePath: "assets/itemss/sendal.png",
+    ),
     // Add more products here if needed
   ];
 

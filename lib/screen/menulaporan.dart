@@ -1,3 +1,4 @@
+import 'package:aplikasir/screen/laporanharian.dart';
 import 'package:flutter/material.dart';
 
 class Menulaporan extends StatefulWidget {
@@ -18,7 +19,7 @@ class _MenulaporanState extends State<Menulaporan> {
             size: 22,
           ),
           onPressed: () {
-            // Handle back button press
+            Navigator.pop(context); // Go back to the previous screen
           },
         ),
         title: Text(
@@ -29,55 +30,58 @@ class _MenulaporanState extends State<Menulaporan> {
       ),
       body: Column(
         children: [
-          SizedBox(height: 20), 
+          SizedBox(height: 20),
           Expanded(
             child: ListView(
               children: [
                 ListTile(
                   leading: Image.asset(
-                      'assets/icons/iconmenulaporan.jpg',
-                      width: 50,
-                      height: 50,
+                    'assets/icons/graph.png',
+                    width: 50,
+                    height: 50,
                   ),
                   title: Text('Laporan Transaksi Hari Ini'),
                   onTap: () {
-                    // untuk nanti muah
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LaporanHarian()),
+                    );
                   },
                 ),
                 Divider(color: Colors.grey.shade300),
                 ListTile(
                   leading: Image.asset(
-                      'assets/icons/iconmenulaporan.jpg',
-                      width: 50,
-                      height: 50,
+                    'assets/icons/graph.png',
+                    width: 50,
+                    height: 50,
                   ),
                   title: Text('Laporan Transaksi Bulan Ini'),
                   onTap: () {
-                    // untuk nanti muah
+                    // Future functionality
                   },
                 ),
                 Divider(color: Colors.grey.shade300),
                 ListTile(
                   leading: Image.asset(
-                      'assets/icons/iconmenulaporan.jpg',
-                      width: 50,
-                      height: 50,
+                    'assets/icons/graph.png',
+                    width: 50,
+                    height: 50,
                   ),
                   title: Text('Laporan Transaksi Tahun Ini'),
                   onTap: () {
-                    // untuk nanti muah
+                    // Future functionality
                   },
                 ),
                 Divider(color: Colors.grey.shade300),
                 ListTile(
                   leading: Image.asset(
-                      'assets/icons/iconmenulaporan.jpg',
-                      width: 50,
-                      height: 50,
+                    'assets/icons/graph.png',
+                    width: 50,
+                    height: 50,
                   ),
                   title: Text('Semua Laporan Transaksi'),
                   onTap: () {
-                    // untuk nanti muah
+                    // Future functionality
                   },
                 ),
                 Divider(color: Colors.grey.shade300),

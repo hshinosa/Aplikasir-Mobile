@@ -20,6 +20,7 @@ class Akun extends StatelessWidget {
         backgroundColor: Colors.white, // Warna AppBar putih
         elevation: 0, // Hilangkan bayangan AppBar
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'lunas_kredit.dart'; // Import lunas_kredit.dart where PelunasanKredit is defined
 
 class DetailKredit extends StatelessWidget {
   final Map<String, dynamic> transaksi;
@@ -8,7 +9,8 @@ class DetailKredit extends StatelessWidget {
   const DetailKredit({super.key, required this.transaksi});
 
   String formatRupiah(int amount) {
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(locale: 'id_ID', name: 'Rp ', decimalDigits: 0);
+    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+        locale: 'id_ID', name: 'Rp ', decimalDigits: 0);
     return currencyFormat.format(amount);
   }
 
@@ -133,12 +135,12 @@ class DetailKredit extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          formatRupiah(transaksi["totalKredit"]), // Konversi ke String
+                          formatRupiah(
+                              transaksi["totalKredit"]), // Konversi ke String
                           style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
-                              color: Colors.red
-                          ),
+                              color: Colors.red),
                         ),
                       ],
                     ),
@@ -156,7 +158,8 @@ class DetailKredit extends StatelessWidget {
                         Text(
                           transaksi["status"] == "Lunas"
                               ? '' // Kosongkan jika status lunas
-                              : formatRupiah(transaksi["belumDibayar"]), // Konversi ke String
+                              : formatRupiah(transaksi[
+                                  "belumDibayar"]), // Konversi ke String
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -175,15 +178,17 @@ class DetailKredit extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50), // Full width button
+            minimumSize: const Size(double.infinity, 50), // Full-width button
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
-            backgroundColor: transaksi["status"] == "Lunas" ? Colors.grey : Colors.blue, // Mengubah warna tombol
+            backgroundColor: transaksi["status"] == "Lunas"
+                ? Colors.grey
+                : Colors.blue, // Change button color
           ),
           onPressed: () {
             if (transaksi["status"] == "Lunas") {
-              // Tampilkan snackbar jika kredit sudah lunas
+              // Show a snackbar if the credit is already paid
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Kredit sudah lunas'),
@@ -191,8 +196,12 @@ class DetailKredit extends StatelessWidget {
                 ),
               );
             } else {
-              // Lakukan pembayaran kredit
-              // Logika pembayaran di sini
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PelunasanKredit(),
+                ),
+              );
             }
           },
           child: Text(
