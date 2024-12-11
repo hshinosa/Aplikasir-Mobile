@@ -1,9 +1,11 @@
-import 'package:aplikasir/screen/checkout.dart';
+import 'package:aplikasir/screen/checkout/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CheckoutFirst extends StatelessWidget {
-  const CheckoutFirst({Key? key}) : super(key: key);
+  final String userId;
+
+  const CheckoutFirst({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +128,7 @@ class CheckoutFirst extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const Checkout()),
+                          builder: (context) => Checkout(userId: userId,)),
                     );
                   },
                   style: ElevatedButton.styleFrom(

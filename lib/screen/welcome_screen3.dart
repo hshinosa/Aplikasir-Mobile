@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:aplikasir/screen/signin_screen.dart';
+import 'package:aplikasir/screen/auth/signin_screen.dart';
 
 class WelcomeScreen3 extends StatelessWidget {
   const WelcomeScreen3({super.key});

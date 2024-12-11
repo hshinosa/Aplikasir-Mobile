@@ -1,11 +1,13 @@
 // pelunasan_kredit.dart
-import 'package:aplikasir/screen/kredit_berhasil.dart';
+import 'package:aplikasir/screen/kredit/kredit_berhasil.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class PelunasanKredit extends StatefulWidget {
-  const PelunasanKredit({Key? key}) : super(key: key);
+  final String userId;
+
+  const PelunasanKredit({Key? key, required this.userId}) : super(key: key);
 
   @override
   _PelunasanKreditState createState() => _PelunasanKreditState();
@@ -187,7 +189,7 @@ class _PelunasanKreditState extends State<PelunasanKredit> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CheckoutKreditBerhasil()),
+                    MaterialPageRoute(builder: (context) => CheckoutKreditBerhasil(userId: widget.userId,)),
                   );
                 },
                 child: Text(

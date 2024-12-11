@@ -1,8 +1,10 @@
-import 'package:aplikasir/screen/checkout_berhasil.dart';
+import 'package:aplikasir/screen/checkout/checkout_berhasil.dart';
 import 'package:flutter/material.dart';
 
 class Checkout extends StatefulWidget {
-  const Checkout({super.key});
+  final String userId;
+
+  const Checkout({super.key, required this.userId});
 
   @override
   State<Checkout> createState() => _CheckoutState();
@@ -55,7 +57,7 @@ class _CheckoutState extends State<Checkout> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CheckoutTransaksiBerhasil(),
+        builder: (context) => CheckoutTransaksiBerhasil(userId: widget.userId,),
       ),
     );
   }

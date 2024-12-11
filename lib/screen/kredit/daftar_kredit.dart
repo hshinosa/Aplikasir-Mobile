@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart'; // Import paket intl
-import 'package:aplikasir/screen/detail_kredit.dart'; // Impor screen DetailKredit
+import 'package:aplikasir/screen/kredit/detail_kredit.dart'; // Impor screen DetailKredit
 
 class DaftarKredit extends StatelessWidget {
-  const DaftarKredit({super.key});
+  final String userId; // Tambahkan userId sebagai parameter
+
+  // Tambahkan konstruktor untuk menerima userId
+  const DaftarKredit({super.key, required this.userId});
 
   final List<Map<String, dynamic>> transaksi = const [
     {
@@ -292,6 +295,7 @@ class DaftarKredit extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => DetailKredit(
+                        userId: userId,
                         transaksi: data,
                       ),
                     ),

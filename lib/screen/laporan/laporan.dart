@@ -1,10 +1,12 @@
-import 'package:aplikasir/screen/laporan_screen.dart';
+import 'package:aplikasir/screen/laporan/laporan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:aplikasir/screen/menulaporan.dart'; // Import menulaporan.dart where MenuLaporan is defined
+import 'package:aplikasir/screen/laporan/menulaporan.dart'; // Import menulaporan.dart where MenuLaporan is defined
 
 class Laporan extends StatelessWidget {
-  const Laporan({super.key});
+  final String userId; // Tambahkan parameter userId
+
+  const Laporan({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +36,12 @@ class Laporan extends StatelessWidget {
                 style: GoogleFonts.poppins(fontSize: 16, color: Colors.black),
               ),
               onTap: () {
-                // Navigate to MenuLaporan screen on tap
+                // Navigate to ReportPage and pass userId
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ReportPage()),
+                  MaterialPageRoute(
+                    builder: (context) => ReportPage(userId: userId),
+                  ),
                 );
               },
             ),
@@ -53,10 +57,12 @@ class Laporan extends StatelessWidget {
                 style: GoogleFonts.poppins(fontSize: 16),
               ),
               onTap: () {
-                // Navigate to MenuLaporan screen on tap
+                // Navigate to MenuLaporan and pass userId
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Menulaporan()),
+                  MaterialPageRoute(
+                    builder: (context) => Menulaporan(),
+                  ),
                 );
               },
             ),

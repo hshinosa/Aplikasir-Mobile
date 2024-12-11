@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Akun extends StatelessWidget {
-  const Akun({super.key});
+  final String userId;
+  
+
+  const Akun({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,4 @@
-import 'package:aplikasir/screen/laporanharian.dart';
+import 'package:aplikasir/screen/laporan/laporanharian.dart';
 import 'package:flutter/material.dart';
 
 class Menulaporan extends StatefulWidget {

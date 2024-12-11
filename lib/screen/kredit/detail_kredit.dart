@@ -5,8 +5,9 @@ import 'lunas_kredit.dart'; // Import lunas_kredit.dart where PelunasanKredit is
 
 class DetailKredit extends StatelessWidget {
   final Map<String, dynamic> transaksi;
+  final String userId;
 
-  const DetailKredit({super.key, required this.transaksi});
+  const DetailKredit({super.key, required this.userId, required this.transaksi});
 
   String formatRupiah(int amount) {
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -199,7 +200,7 @@ class DetailKredit extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PelunasanKredit(),
+                  builder: (context) => PelunasanKredit(userId: userId),
                 ),
               );
             }

@@ -1,50 +1,57 @@
-import 'package:aplikasir/screen/checkout.dart';
-import 'package:aplikasir/screen/kredit_list_screen.dart';
-import 'package:aplikasir/screen/transaksi_pilih.dart';
+import 'package:aplikasir/screen/kredit/kredit_list_screen.dart';
+import 'package:aplikasir/screen/checkout/transaksi_pilih.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'produk.dart';
-import 'akun.dart';
-import 'laporan.dart';
-import 'package:aplikasir/screen/daftar_kredit.dart';
+import '../produk/produk.dart';
+import '../profile/akun.dart';
+import '../laporan/laporan.dart';
+import 'package:aplikasir/screen/kredit/daftar_kredit.dart';
 
 class HomePage extends StatefulWidget {
-  final int initialPageIndex; // Tambahkan parameter ini
+  final String userId; // Pastikan userId dideklarasikan dan diterima
+  final int initialPageIndex; // Halaman awal
 
-  const HomePage({Key? key, this.initialPageIndex = 0})
-      : super(key: key); // Inisialisasi default 0
+  const HomePage({Key? key, required this.userId, this.initialPageIndex = 0})
+      : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late int _selectedIndex; // Menyimpan index halaman yang dipilih
-  late int _selectedTab; // Menyimpan index tab yang dipilih
-
-  final List<Widget> _children = [
-    HomeContent(
-      selectedTab: 0,
-      onTabChange: (index) {},
-    ),
-    Produk(),
-    Laporan(),
-    Akun(),
-  ];
+  late int _selectedIndex;
+  late int _selectedTab;
+  late List<Widget> _children;
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex =
-        widget.initialPageIndex; // Set sesuai dengan initialPageIndex
+
+    _children = [
+      HomeContent(
+        userId: widget.userId,
+        selectedTab: 0,
+        onTabChange: (index) {
+          setState(() {
+            _selectedTab = index;
+          });
+        },
+      ),
+      Produk(userId: widget.userId), // Kirim userId ke Produk
+      Laporan(userId: widget.userId), // Kirim userId ke Laporan
+      Akun(userId: widget.userId), // Kirim userId ke Akun
+    ];
+
+    _selectedIndex = widget.initialPageIndex;
     _selectedTab = 0;
+
+    // Atur gaya status bar
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
-        statusBarIconBrightness:
-            Brightness.light, // Warna ikon status bar menjadi gelap
-        statusBarBrightness: Brightness.light, // Untuk perangkat iOS
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.light,
       ),
     );
   }
@@ -54,19 +61,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: _children.map((child) {
-          if (child is HomeContent) {
-            return HomeContent(
-              selectedTab: _selectedTab,
-              onTabChange: (index) {
-                setState(() {
-                  _selectedTab = index;
-                });
-              },
-            );
-          }
-          return child;
-        }).toList(),
+        children: _children,
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
@@ -117,11 +112,13 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+
 class HomeContent extends StatefulWidget {
   final int selectedTab;
   final Function(int) onTabChange;
+  final String userId;
 
-  HomeContent({Key? key, required this.selectedTab, required this.onTabChange})
+  HomeContent({Key? key, required this.userId, required this.selectedTab, required this.onTabChange})
       : super(key: key);
 
   @override
@@ -169,10 +166,11 @@ class _HomeContentState extends State<HomeContent> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  DaftarKredit(), // Replace with your QR screen class
+                                  DaftarKredit(userId: widget.userId), // Replace with your QR screen class
                             ),
                           );
                         },
+                        widget.userId
                       ),
                       _buildIconButton(
                         'assets/icons/credit_icon.png',
@@ -183,10 +181,11 @@ class _HomeContentState extends State<HomeContent> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  KreditListScreen(), // Replace with your DaftarKredit screen class
+                                  KreditListScreen(userId: widget.userId), // Replace with your DaftarKredit screen class
                             ),
                           );
                         },
+                        widget.userId
                       ),
                       _buildIconButton(
                         'assets/icons/customer_icon.png',
@@ -197,10 +196,11 @@ class _HomeContentState extends State<HomeContent> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  DaftarKredit(), // Replace with your Pelanggan screen class
+                                  DaftarKredit(userId: widget.userId), // Replace with your Pelanggan screen class
                             ),
                           );
                         },
+                        widget.userId
                       ),
                     ],
                   ),
@@ -260,7 +260,7 @@ class _HomeContentState extends State<HomeContent> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => TransaksiScreen()),
+              MaterialPageRoute(builder: (context) => TransaksiScreen(userId: widget.userId,)),
             );
           },
           child: Image.asset(
@@ -286,9 +286,9 @@ class _HomeContentState extends State<HomeContent> {
     return formatter.format(number);
   }
 
-  Widget _buildIconButton(String iconPath, String label, VoidCallback onTap) {
+  Widget _buildIconButton(String iconPath, String label, VoidCallback onTap, String userId) {
     return InkWell(
-      onTap: onTap, // Trigger navigation when tapped
+      onTap: () => onTap(),
       child: Container(
         width: 100,
         padding: const EdgeInsets.all(12),
@@ -308,6 +308,8 @@ class _HomeContentState extends State<HomeContent> {
       ),
     );
   }
+  
+
 
   Widget _buildTabButton(String label, {required int index}) {
     bool isActive = widget.selectedTab == index;

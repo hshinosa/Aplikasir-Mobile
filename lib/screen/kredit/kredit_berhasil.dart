@@ -1,11 +1,13 @@
-import 'checkout_struk_transaksi.dart';
+import 'package:aplikasir/screen/checkout/checkout_struk_hutang.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'homepage.dart';
+import '../home/homepage.dart';
 
-class CheckoutTransaksiBerhasil extends StatelessWidget {
-  const CheckoutTransaksiBerhasil({super.key});
+class CheckoutKreditBerhasil extends StatelessWidget {
+  final String userId;
+
+  const CheckoutKreditBerhasil({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                 height: 14,
               ),
               Text(
-                "Transaksi Berhasil",
+                "Kredit Lunas",
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                 ),
@@ -68,7 +70,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                   // Navigasi ke HomePage ketika tombol Transaksi Baru ditekan
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
+                    MaterialPageRoute(builder: (context) => HomePage(userId: userId)),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -82,7 +84,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  "Transaksi Baru",
+                  "Kembali ke Beranda",
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 17,
@@ -96,7 +98,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CheckoutStrukTransaksi(),
+                      builder: (context) => CheckoutStrukHutang(),
                     ),
                   );
                 },
@@ -111,7 +113,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                   side: const BorderSide(color: Colors.blue, width: 1.5),
                 ),
                 child: Text(
-                  "Lihat Struk Transaksi",
+                  "Lihat Struk Kredit",
                   style: GoogleFonts.poppins(
                     color: Colors.blue,
                     fontSize: 17,

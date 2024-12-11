@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:aplikasir/screen/homepage.dart';
-import 'package:aplikasir/screen/signup_screen.dart';
+import 'package:aplikasir/screen/home/homepage.dart';
+import 'package:aplikasir/screen/auth/signup_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
@@ -55,32 +56,33 @@ void _initializeNotification() async {
   }
 
   Future<void> _signIn() async {
-    final String username = _usernameController.text.trim();
+    final String email = _usernameController.text.trim();
     final String password = _passwordController.text.trim();
-    String hashedPassword = _hashPassword(password);
 
     try {
-      // Query the user based on username and password
-      final QuerySnapshot result = await users
-          .where('username', isEqualTo: username)
-          .where('password', isEqualTo: hashedPassword)
-          .get();
+      // Masuk ke Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (result.docs.isNotEmpty) {
-        await _showLoginSuccessNotification();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ),
-        );
-      } else {
-        _showErrorDialog("Username atau password salah!");
-      }
+      final String userId = userCredential.user!.uid;
+
+      // Tampilkan notifikasi berhasil
+      await _showLoginSuccessNotification();
+
+      // Arahkan ke halaman utama dengan UID
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(userId: userId),
+        ),
+      );
     } catch (e) {
-      _showErrorDialog("Terjadi kesalahan. Silakan coba lagi.");
+      _showErrorDialog("Username atau password salah!");
     }
   }
+
 
   // Function to display error dialog
   void _showErrorDialog(String message) {

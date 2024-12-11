@@ -1,8 +1,10 @@
-import 'package:aplikasir/screen/checkout_first.dart';
+import 'package:aplikasir/screen/checkout/checkout_first.dart';
 import 'package:flutter/material.dart';
 
 class TransaksiScreen extends StatelessWidget {
-  const TransaksiScreen({Key? key}) : super(key: key);
+  final String userId;
+
+  TransaksiScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +70,7 @@ class TransaksiScreen extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CheckoutFirst()),
+                MaterialPageRoute(builder: (context) => CheckoutFirst(userId: userId,)),
               );
             },
             child: Container(
