@@ -4,7 +4,7 @@ import 'package:intl/intl.dart'; // Import paket intl
 import 'package:aplikasir/screen/kredit/detail_kredit.dart'; // Impor screen DetailKredit
 
 class DaftarKredit extends StatelessWidget {
-  final String userId; // Tambahkan userId sebagai parameter
+  final int userId; // Tambahkan userId sebagai parameter
 
   // Tambahkan konstruktor untuk menerima userId
   const DaftarKredit({super.key, required this.userId});

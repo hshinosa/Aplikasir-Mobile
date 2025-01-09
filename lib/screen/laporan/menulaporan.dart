@@ -2,7 +2,8 @@ import 'package:aplikasir/screen/laporan/laporanharian.dart';
 import 'package:flutter/material.dart';
 
 class Menulaporan extends StatefulWidget {
-  const Menulaporan({super.key});
+  final int userId;
+  const Menulaporan({super.key, required this.userId});
 
   @override
   State<Menulaporan> createState() => _MenulaporanState();
@@ -44,7 +45,10 @@ class _MenulaporanState extends State<Menulaporan> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LaporanHarian()),
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            LaporanHarian(userId: widget.userId),
+                      ),
                     );
                   },
                 ),

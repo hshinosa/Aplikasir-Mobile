@@ -1,13 +1,103 @@
+import 'package:aplikasir/api/produk_API.dart';
+import 'package:aplikasir/models/produk_model.dart';
+import 'package:aplikasir/screen/produk/editproduk.dart';
 import 'package:aplikasir/screen/produk/tambahproduk.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart'; // Import the intl package
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Produk extends StatelessWidget {
-  final String userId;
+class Produk extends StatefulWidget {
+  final int userId;
 
   const Produk({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  State<Produk> createState() => _ProdukState();
+}
+
+class _ProdukState extends State<Produk> {
+  String query = '';
+  List<ProdukModel> results = [];
+  List<ProdukModel> allresults = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProduk();
+  }
+
+  Future<void> _fetchProduk() async {
+    try {
+      final produkData = await ProdukApi().fetchProduk();
+      if (!mounted) return;
+      setState(() {
+        allresults = produkData;
+        results = allresults;
+        _isLoading = false;
+      });
+      print('Data produk yang diterima: $allresults');
+    } catch (e) {
+      print('Error saat memuat produk: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _konfirmasiHapus(BuildContext context, ProdukModel product) async {
+  final bool? konfirmasi = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Konfirmasi Hapus'),
+        content: Text('Apakah Anda yakin ingin menghapus produk ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Hapus'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (konfirmasi == true) {
+    _hapusProduk(product.id);
+  }
+}
+
+Future<void> _hapusProduk(int id) async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  final bool berhasil = await ProdukApi().hapusProduk(id);
+
+  if (berhasil) {
+    setState(() {
+      allresults.removeWhere((product) => product.id == id);
+      results = allresults;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Produk berhasil dihapus')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gagal menghapus produk')),
+    );
+  }
+
+  setState(() {
+    _isLoading = false;
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,32 +175,27 @@ class Produk extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   // ListView for displaying products
-                  Expanded(
-                    child: FutureBuilder(
-                      future: FirebaseFirestore.instance
-                          .collection('products')
-                          .where('userId', isEqualTo: userId)
-                          .get(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-
-                        final products = snapshot.data!.docs.map((doc) {
-                          final data = doc.data() as Map<String, dynamic>;
-                          return Product(
-                            name: data['name'],
-                            modalPrice: data['modalPrice'],
-                            sellPrice: data['sellPrice'],
-                            stock: data['stock'],
-                            imagePath: data['imagePath'],
-                          );
-                        }).toList();
-
-                        return _buildProductList(products);
-                      },
-                    ),
-                  ),
+                  allresults.isEmpty
+                      ? Container(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 30,
+                              ),
+                              Center(
+                                  child: Text(
+                                'Produk tidak ada',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ))
+                            ],
+                          ),
+                        )
+                      : Expanded(
+                          child: _buildProductList(results),
+                        ),
                 ],
               ),
             ),
@@ -137,12 +222,24 @@ class Produk extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TambahProduk(userId: userId), // Kirim userId
+        builder: (context) =>
+            TambahProduk(userId: widget.userId), // Kirim userId
       ),
     );
   }
 
-  Widget _buildProductList(List<Product> products) {
+void _navigateToEditProduk(BuildContext context, ProdukModel product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => EditProduk(
+        produk: product,
+        userId: widget.userId, // Kirim userId
+      ),
+    ),
+  );
+}
+  Widget _buildProductList(List<ProdukModel> products) {
     final NumberFormat currencyFormat =
         NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
@@ -158,11 +255,19 @@ class Produk extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                Image.asset(
-                  product.imagePath,
+                Image.network(
+                  product.gambarProduk,
                   width: 50,
                   height: 50,
                   fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons
+                          .image_not_supported, // Atau gunakan ikon barang sesuai keinginan Anda
+                      size: 50,
+                      color: Colors.grey,
+                    );
+                  },
                 ),
                 SizedBox(width: 10),
                 Expanded(
@@ -170,11 +275,11 @@ class Produk extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.name,
+                        product.namaProduk,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        "Stock Barang ${product.stock}",
+                        "Stock Barang ${product.jumlahProduk}",
                         style: GoogleFonts.poppins(
                             color: Color(0xFF4B71B2),
                             fontSize: 14,
@@ -195,7 +300,7 @@ class Produk extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      currencyFormat.format(product.modalPrice),
+                      currencyFormat.format(product.hargaModal),
                       style: GoogleFonts.poppins(
                         color: Colors.black,
                         fontWeight: FontWeight.w600,
@@ -211,7 +316,7 @@ class Produk extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      currencyFormat.format(product.sellPrice),
+                      currencyFormat.format(product.hargaJual),
                       style: GoogleFonts.poppins(
                         color: Colors.black,
                         fontWeight: FontWeight.w600,
@@ -226,7 +331,7 @@ class Produk extends StatelessWidget {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Tambahkan logika delete
+                           _konfirmasiHapus(context, product);
                         },
                         child: Image.asset(
                           'assets/icons/delete.png',
@@ -237,7 +342,7 @@ class Produk extends StatelessWidget {
                       SizedBox(height: 10),
                       GestureDetector(
                         onTap: () {
-                          // Tambahkan logika edit
+                          _navigateToEditProduk(context, product);
                         },
                         child: Image.asset(
                           'assets/icons/edit.png',
@@ -255,20 +360,4 @@ class Produk extends StatelessWidget {
       },
     );
   }
-}
-
-class Product {
-  final String imagePath;
-  final String name;
-  final int modalPrice;
-  final int sellPrice;
-  final int stock;
-
-  Product({
-    required this.imagePath,
-    required this.name,
-    required this.modalPrice,
-    required this.sellPrice,
-    required this.stock,
-  });
 }

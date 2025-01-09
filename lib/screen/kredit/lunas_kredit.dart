@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class PelunasanKredit extends StatefulWidget {
-  final String userId;
+  final int userId;
 
-  const PelunasanKredit({Key? key, required this.userId}) : super(key: key);
+  const PelunasanKredit({super.key, required this.userId});
 
   @override
   _PelunasanKreditState createState() => _PelunasanKreditState();

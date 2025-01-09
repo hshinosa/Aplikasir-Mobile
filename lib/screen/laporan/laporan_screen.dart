@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:aplikasir/api/laporan_api.dart';
+import 'package:aplikasir/models/laporan_model.dart';
 
 class ReportPage extends StatefulWidget {
-  final String userId; // Tambahkan userId untuk filter data
+  final int userId; // Tambahkan userId untuk filter data
 
   const ReportPage({super.key, required this.userId});
 
@@ -13,6 +15,33 @@ class _ReportPageState extends State<ReportPage> {
   final List<String> items = ['Hari ini', 'Kemarin', 'Minggu lalu'];
   String? selectedItem;
   List<bool> isSelected = [true, false, false];
+
+  Future<Map<String, dynamic>> fetchSummaryData(int userId) async {
+    try {
+      final laporan = await LaporanApi.getLaporan();
+      // Filter data berdasarkan userId
+      final userLaporan = laporan
+          .where((item) => item.idPengguna.toString() == userId)
+          .toList();
+
+      // Hitung jumlah transaksi dan pendapatan
+      int totalTransaksi =
+          userLaporan.fold(0, (sum, item) => sum + item.totalTransaksi);
+      double totalPendapatan =
+          userLaporan.fold(0.0, (sum, item) => sum + item.totalPenjualan);
+
+      return {
+        'totalTransaksi': totalTransaksi,
+        'totalPendapatan': totalPendapatan,
+      };
+    } catch (e) {
+      print('Error fetching summary data: $e');
+      return {
+        'totalTransaksi': 0,
+        'totalPendapatan': 0.0,
+      };
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +70,38 @@ class _ReportPageState extends State<ReportPage> {
                   SizedBox(height: 20),
                   _buildDropdownAndDownload(),
                   SizedBox(height: 35),
-                  _buildSummaryRow('Jumlah Transaksi', '1', Icons.trending_up),
-                  SizedBox(height: 18),
-                  _buildSummaryRow('Laba Rugi', 'Rp.30.000', Icons.trending_up),
-                  SizedBox(height: 18),
-                  _buildSummaryRow('Pendapatan', 'Rp.50.000', Icons.trending_up),
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: fetchSummaryData(widget.userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return _buildSummaryRow('Jumlah Transaksi',
+                            'Loading...', Icons.trending_up);
+                      } else if (snapshot.hasError) {
+                        return _buildSummaryRow(
+                            'Jumlah Transaksi', 'Error', Icons.error);
+                      } else if (snapshot.hasData) {
+                        final data = snapshot.data!;
+                        return Column(
+                          children: [
+                            _buildSummaryRow(
+                              'Jumlah Transaksi',
+                              data['totalTransaksi'].toString(),
+                              Icons.trending_up,
+                            ),
+                            SizedBox(height: 18),
+                            _buildSummaryRow(
+                              'Pendapatan',
+                              'Rp ${data['totalPendapatan'].toStringAsFixed(2)}',
+                              Icons.trending_up,
+                            ),
+                          ],
+                        );
+                      } else {
+                        return _buildSummaryRow(
+                            'Jumlah Transaksi', 'No data', Icons.info);
+                      }
+                    },
+                  ),
                   SizedBox(height: 30),
                   Text('Laporan Transaksi',
                       style:
@@ -144,8 +200,10 @@ class _ReportPageState extends State<ReportPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(value,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+              Text(title,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             ],
           )
         ],
@@ -170,9 +228,15 @@ class _ReportPageState extends State<ReportPage> {
         });
       },
       children: const [
-        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Transaksi')),
-        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Laba Rugi')),
-        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Pendapatan')),
+        Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Text('Transaksi')),
+        Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Text('Laba Rugi')),
+        Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Text('Pendapatan')),
       ],
     );
   }
@@ -197,8 +261,18 @@ class _ReportPageState extends State<ReportPage> {
 
   Widget _buildTopSalesList() {
     final products = [
-      {'name': 'Sendal', 'price': 'Rp.12.000', 'sales': '10', 'percentage': '0,2%'},
-      {'name': 'Garam 1kg', 'price': 'Rp.5.000', 'sales': '10', 'percentage': '0,2%'},
+      {
+        'name': 'Sendal',
+        'price': 'Rp.12.000',
+        'sales': '10',
+        'percentage': '0,2%'
+      },
+      {
+        'name': 'Garam 1kg',
+        'price': 'Rp.5.000',
+        'sales': '10',
+        'percentage': '0,2%'
+      },
     ];
 
     return Container(

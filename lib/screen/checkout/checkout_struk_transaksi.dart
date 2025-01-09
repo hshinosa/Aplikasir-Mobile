@@ -1,36 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:aplikasir/models/transaksi_model.dart';
+import 'package:aplikasir/api/transaksi_api.dart';
 
-class CheckoutStrukTransaksi extends StatelessWidget {
-  CheckoutStrukTransaksi({super.key});
+class CheckoutStrukTransaksi extends StatefulWidget {
+  final int userId; // Mengambil ID pengguna untuk transaksi terakhir
+  const CheckoutStrukTransaksi({required this.userId, Key? key})
+      : super(key: key);
 
-  final List<Product> productList = [
-    Product(
-      name: "Garam 250g",
-      modalPrice: 5000,
-      sellPrice: 7000,
-      stock: 100,
-      imagePath: "assets/items/garam.png",
-    ),
-    Product(
-      name: "Gula 1kg",
-      modalPrice: 12000,
-      sellPrice: 15000,
-      stock: 50,
-      imagePath: "assets/itemss/gula.png",
-    ),
-    Product(
-      name: "Sendal",
-      modalPrice: 12000,
-      sellPrice: 15000,
-      stock: 50,
-      imagePath: "assets/itemss/sendal.png",
-    ),
-    // Add more products here if needed
-  ];
+  @override
+  _CheckoutStrukTransaksiState createState() => _CheckoutStrukTransaksiState();
+}
 
-  // Format currency using the intl package
+class _CheckoutStrukTransaksiState extends State<CheckoutStrukTransaksi> {
+  late Future<List<TransaksiModel>> allTransactions;
+
+  @override
+  void initState() {
+    super.initState();
+    allTransactions = TransaksiApi().fetchTransaksi(); // Fetch all transactions
+  }
+
+  // Fungsi untuk format mata uang
   String formatCurrency(int amount) {
     final format =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
@@ -41,6 +33,12 @@ class CheckoutStrukTransaksi extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           "Struk",
           style: GoogleFonts.poppins(
@@ -50,172 +48,156 @@ class CheckoutStrukTransaksi extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      blurRadius: 8.0,
-                      spreadRadius: 2.0,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Text(
-                        "ANUGRAH JAYA",
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        "Jalan pasar baru raya timur",
-                        style: GoogleFonts.poppins(
-                            fontSize: 14, color: Colors.grey),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "2024-06-09\n12:10:12\nNo 2",
-                          style: GoogleFonts.poppins(fontSize: 14),
-                        ),
-                        Text(
-                          "Andi",
-                          style: GoogleFonts.poppins(fontSize: 14),
+      body: FutureBuilder<List<TransaksiModel>>(
+        future: allTransactions,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                style: GoogleFonts.poppins(fontSize: 16),
+              ),
+            );
+          } else if (snapshot.hasData && snapshot.data != null) {
+            final transactions = snapshot.data!;
+
+            // Filter transaksi pengguna dan ambil transaksi terakhir
+            final userTransactions = transactions
+                .where((transaction) => transaction.idPengguna == widget.userId)
+                .toList()
+              ..sort((a, b) => b.id.compareTo(a.id));
+
+            if (userTransactions.isEmpty) {
+              return const Center(child: Text("Tidak ada transaksi terakhir"));
+            }
+
+            final transaction = userTransactions.first; // Transaksi terbaru
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8.0,
+                          spreadRadius: 2.0,
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
-                    Divider(),
-                    // Use ListView.builder for product list
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: productList.length,
-                      itemBuilder: (context, index) {
-                        final product = productList[index];
-                        return Column(
-                          children: [
-                            Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "ANUGRAH JAYA",
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: Text(
+                            "Jalan pasar baru raya timur",
+                            style: GoogleFonts.poppins(
+                                fontSize: 14, color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        Text(
+                          "Metode : ${transaction.metodePembayaran}",
+                          style: GoogleFonts.poppins(fontSize: 14),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          "Jenis Transaksi : ${transaction.jenisTransaksi}",
+                          style: GoogleFonts.poppins(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        const Divider(),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: transaction.details.length,
+                          itemBuilder: (context, index) {
+                            final item = transaction.details[index];
+                            return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      product.name,
+                                      item['nama_produk'] ?? 'Unknown',
                                       style: GoogleFonts.poppins(fontSize: 14),
                                     ),
                                     Text(
-                                      "1 × ${formatCurrency(product.sellPrice)}",
+                                      "${item['kuantitas'] ?? 0} × ${formatCurrency(double.tryParse(item['harga_satuan']?.toString() ?? '')?.toInt() ?? 0)}",
                                       style: GoogleFonts.poppins(fontSize: 14),
                                     ),
                                   ],
                                 ),
                                 Text(
-                                  formatCurrency(product.sellPrice),
+                                  formatCurrency(
+                                      (item['subtotal'] as num?)?.toInt() ?? 0),
                                   style: GoogleFonts.poppins(fontSize: 14),
                                 ),
                               ],
+                            );
+                          },
+                        ),
+                        const Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Total",
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              formatCurrency(transaction.details
+                                  .map((e) => e['subtotal'] as int)
+                                  .reduce((a, b) => a + b)),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ],
-                        );
-                      },
-                    ),
-                    SizedBox(height: 8),
-                    Divider(),
-                    SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Total",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
                         ),
-                        Text(
-                          formatCurrency(productList.fold(
-                              0, (sum, item) => sum + item.sellPrice)),
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        SizedBox(
+                          height: 8,
                         ),
+                        Center(
+                          child: Image.asset(
+                            'assets/images/logoaplikasir.jpg', // Ganti dengan path logo Anda
+                            width: 180,
+                          ),
+                        )
                       ],
                     ),
-                    SizedBox(height: 8),
-                    // Add Kembali section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Kembali",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          formatCurrency(5000), // Example amount for Kembali
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    // Replace the Aplikasir logo with an image
-                    Center(
-                      child: Image.asset(
-                        'assets/images/logo_utama.png',
-                        height: 50, // Adjust size as needed
-                        width: 150,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          } else {
+            return const Center(child: Text("Tidak ada transaksi terakhir"));
+          }
+        },
       ),
     );
   }
-}
-
-class Product {
-  final String name;
-  final int modalPrice;
-  final int sellPrice;
-  final int stock;
-  final String imagePath;
-
-  Product({
-    required this.name,
-    required this.modalPrice,
-    required this.sellPrice,
-    required this.stock,
-    required this.imagePath,
-  });
 }

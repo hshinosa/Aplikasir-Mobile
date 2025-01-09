@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import '../home/homepage.dart';
 
 class CheckoutKreditBerhasil extends StatelessWidget {
-  final String userId;
+  final int userId;
 
-  const CheckoutKreditBerhasil({Key? key, required this.userId}) : super(key: key);
+  const CheckoutKreditBerhasil({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,7 @@ class CheckoutKreditBerhasil extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CheckoutStrukHutang(),
+                      builder: (context) => CheckoutStrukHutang(userId: userId,),
                     ),
                   );
                 },

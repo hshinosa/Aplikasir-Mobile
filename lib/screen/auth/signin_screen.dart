@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:aplikasir/screen/home/homepage.dart';
 import 'package:aplikasir/screen/auth/signup_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
+import 'package:aplikasir/api/auth_api.dart'; // Import AuthAPI
 
 class SignInScreen extends StatefulWidget {
   final String? username;
@@ -24,9 +21,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-
-  final CollectionReference users = FirebaseFirestore.instance.collection('users');
-
   @override
   void initState() {
     super.initState();
@@ -39,52 +33,59 @@ class _SignInScreenState extends State<SignInScreen> {
     _initializeNotification();
   }
 
-void _initializeNotification() async {
-  const AndroidInitializationSettings androidSettings =
+  void _initializeNotification() async {
+    const AndroidInitializationSettings androidSettings =
       AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initSettings = InitializationSettings(
-    android: androidSettings,
-  );
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+    );
 
-  await _flutterLocalNotificationsPlugin.initialize(initSettings);
-}
-
-  String _hashPassword(String password) {
-    final bytes = utf8.encode(password);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
+    await _flutterLocalNotificationsPlugin.initialize(initSettings);
   }
 
+  // Fungsi login menggunakan API yang dipanggil dari AuthAPI
   Future<void> _signIn() async {
-    final String email = _usernameController.text.trim();
+    final String username = _usernameController.text.trim();
     final String password = _passwordController.text.trim();
+    final String role = 'pengguna';
+
+    print("Memulai proses login...");
+    print("Input pengguna: username = $username, password = ${'*' * password.length}");
 
     try {
-      // Masuk ke Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      // Panggil API login menggunakan AuthAPI
+      final data = await AuthAPI.signIn(username, password, role);
 
-      final String userId = userCredential.user!.uid;
+      // Pastikan respons API berisi data user
+      if (data.containsKey('user')) {
+        final int userId = data['user']['id']; // Sesuaikan dengan respons API
 
-      // Tampilkan notifikasi berhasil
-      await _showLoginSuccessNotification();
+        // Tampilkan data respons untuk debugging
+        print("Respons login berhasil: $data");
 
-      // Arahkan ke halaman utama dengan UID
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(userId: userId),
-        ),
-      );
+        // Tampilkan notifikasi berhasil
+        await _showLoginSuccessNotification();
+
+        // Arahkan ke halaman utama dengan UID
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(userId: userId),
+          ),
+        );
+      } else {
+        throw Exception('Data user tidak ditemukan');
+      }
     } catch (e) {
+      // Tampilkan kesalahan untuk debugging
+      print("Terjadi kesalahan saat login: $e");
       _showErrorDialog("Username atau password salah!");
     }
   }
 
 
-  // Function to display error dialog
+
+  // Fungsi untuk menampilkan dialog error
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -108,6 +109,7 @@ void _initializeNotification() async {
     );
   }
 
+  // Fungsi untuk menampilkan notifikasi login berhasil
   Future<void> _showLoginSuccessNotification() async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'login_channel',
@@ -183,7 +185,7 @@ void _initializeNotification() async {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // Logika buat lupa kata sandi males ngisi
+                    // Logika buat lupa kata sandi
                   },
                   child: Text(
                     'Lupa Kata Sandi?',

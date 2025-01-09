@@ -5,7 +5,7 @@ import 'lunas_kredit.dart'; // Import lunas_kredit.dart where PelunasanKredit is
 
 class DetailKredit extends StatelessWidget {
   final Map<String, dynamic> transaksi;
-  final String userId;
+  final int userId;
 
   const DetailKredit({super.key, required this.userId, required this.transaksi});
 
