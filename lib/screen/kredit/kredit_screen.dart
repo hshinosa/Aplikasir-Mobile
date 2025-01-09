@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CreditScreen extends StatelessWidget {
-  const CreditScreen({super.key});
+  final int userId;
+
+  const CreditScreen({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {

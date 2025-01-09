@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:aplikasir/screen/auth/signin_screen.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
+import 'package:aplikasir/api/auth_api.dart'; // Import API
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,9 +14,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final PageController _pageController = PageController();
   final _formKeyPage1 = GlobalKey<FormState>();
   final _formKeyPage2 = GlobalKey<FormState>();
-
-  final _auth = FirebaseAuth.instance;
-  final CollectionReference users = FirebaseFirestore.instance.collection('users');
 
   // Controllers untuk setiap field
   final TextEditingController _usernameController = TextEditingController();
@@ -48,52 +42,55 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  String _hashPassword(String password) {
-    final bytes = utf8.encode(password);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
-
   // Fungsi untuk mendaftarkan user
   Future<void> _registerUser() async {
     if (_formKeyPage2.currentState!.validate()) {
+      print("Form valid, mulai proses register...");
       try {
-        String hashedPassword = _hashPassword(_passwordController.text.trim());
-        // Create a new user with email and password
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        // Panggil API registerPengguna
+        print("Mengirim data ke API...");
+        final response = await AuthAPI.registerPengguna(
+          username: _usernameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          shopName: _shopNameController.text.trim(),
+          address: _addressController.text.trim(),
         );
 
-        // Store user data in Firestore, including the password
-        await users.doc(userCredential.user!.uid).set({
-          'username': _usernameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'shopName': _shopNameController.text.trim(),
-          'address': _addressController.text.trim(),
-          'password': hashedPassword,
-        });
+        // Debug response dari API
+        print("Response dari API: $response");
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pendaftaran berhasil!')),
-        );
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SignInScreen(
-              username: _usernameController.text.trim(),
-              password: _passwordController.text.trim(),
+        // Cek apakah pendaftaran berhasil
+        if (response['status'] == 'success') {
+          print("Pendaftaran berhasil!");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pendaftaran berhasil!')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SignInScreen(
+                username: _usernameController.text.trim(),
+                password: _passwordController.text.trim(),
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          print("Gagal mendaftarkan user: ${response['message']}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal: ${response['message']}')),
+          );
+        }
       } catch (e) {
+        print("Terjadi kesalahan: ${e.toString()}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal mendaftarkan user: ${e.toString()}')),
         );
       }
+    } else {
+      print("Form tidak valid.");
     }
   }
 
@@ -118,6 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  // Form pertama (untuk username, email, password)
   Widget _buildFirstPage() {
     return Form(
       key: _formKeyPage1,
@@ -344,7 +342,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Text('Sudah memiliki akun? ', style: GoogleFonts.poppins(fontSize: 14)),
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => SignInScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignInScreen()));
           },
           child: Text(
             'Masuk',

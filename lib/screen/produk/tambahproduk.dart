@@ -1,15 +1,14 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:aplikasir/api/produk_API.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:aplikasir/screen/home/homepage.dart';
 
 class TambahProduk extends StatefulWidget {
-  final String userId;
+  final int userId;
 
-  const TambahProduk({Key? key, required this.userId}) : super(key: key);
+  const TambahProduk({super.key, required this.userId});
 
   @override
   State<TambahProduk> createState() => _TambahProdukState();
@@ -35,70 +34,37 @@ class _TambahProdukState extends State<TambahProduk> {
     }
   }
 
-  // Fungsi untuk mengunggah gambar ke Firebase Storage dan mendapatkan URL-nya
-  Future<String?> _uploadImageToStorage(File image) async {
-    try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('product_images')
-          .child(fileName);
-
-      await ref.putFile(image);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
   // Fungsi untuk menyimpan data produk ke Firestore
-  Future<void> _simpanData() async {
-    if (_selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap pilih gambar produk terlebih dahulu!')),
-      );
-      return;
-    }
-
+  Future<void> _simpanData(
+      int idPengguna,
+      File gambarProduk,
+      String namaProduk,
+      String kodeProduk,
+      int jumlahProduk,
+      String hargaProduk,
+      String hargaJual) async {
     try {
-      // Upload gambar ke Firebase Storage
-      final imageUrl = await _uploadImageToStorage(_selectedImage!);
-      if (imageUrl == null) {
+      bool status = await ProdukApi().tambahProduk(idPengguna, gambarProduk,
+          namaProduk, kodeProduk, jumlahProduk, hargaProduk, hargaJual);
+
+      if (status) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal mengunggah gambar.')),
+          const SnackBar(content: Text('Produk berhasil ditambahkan!')),
         );
-        return;
+
+        // Navigasikan kembali ke halaman HomePage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                HomePage(userId: widget.userId, initialPageIndex: 1),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('gagal menambahkan produk!')),
+        );
       }
-
-      // Simpan data produk ke subkoleksi `products` di dalam dokumen pengguna
-      final productData = {
-        'name': _namaProdukController.text,
-        'code': _kodeProdukController.text,
-        'quantity': int.parse(_jumlahProdukController.text),
-        'costPrice': double.parse(_hargaModalController.text),
-        'sellPrice': double.parse(_hargaJualController.text),
-        'imagePath': imageUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('products')
-          .add(productData);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Produk berhasil ditambahkan!')),
-      );
-
-      // Navigasikan kembali ke halaman HomePage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(userId: widget.userId, initialPageIndex: 1),
-        ),
-      );
     } catch (e) {
       print('Error saving product: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,6 +85,8 @@ class _TambahProdukState extends State<TambahProduk> {
           ),
         ),
         centerTitle: true,
+        scrolledUnderElevation: 0,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -209,7 +177,52 @@ class _TambahProdukState extends State<TambahProduk> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                  onPressed: _simpanData,
+                  onPressed: () async {
+                    // Validasi input
+                    if (_selectedImage == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Pilih gambar produk terlebih dahulu!')),
+                      );
+                      return;
+                    }
+
+                    if (_namaProdukController.text.isEmpty ||
+                        _kodeProdukController.text.isEmpty ||
+                        _jumlahProdukController.text.isEmpty ||
+                        _hargaModalController.text.isEmpty ||
+                        _hargaJualController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Lengkapi semua data produk!')),
+                      );
+                      return;
+                    }
+
+                    // Konversi jumlah produk ke integer
+                    int? jumlahProduk =
+                        int.tryParse(_jumlahProdukController.text);
+                    if (jumlahProduk == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Jumlah produk harus berupa angka!')),
+                      );
+                      return;
+                    }
+
+                    // Panggil fungsi simpan data
+                    await _simpanData(
+                      widget.userId,
+                      _selectedImage!,
+                      _namaProdukController.text,
+                      _kodeProdukController.text,
+                      jumlahProduk,
+                      _hargaModalController.text,
+                      _hargaJualController.text,
+                    
+                    );
+                  },
                 ),
               ),
             ],

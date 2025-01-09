@@ -1,11 +1,32 @@
-import 'package:aplikasir/screen/checkout/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:aplikasir/models/produk_model.dart'; // Ensure this import is present
+import 'package:aplikasir/screen/checkout/checkout.dart'; // Adjust if needed
+import 'package:aplikasir/api/produk_api.dart'; // Import ProdukApi
 
-class CheckoutFirst extends StatelessWidget {
-  final String userId;
+class CheckoutFirst extends StatefulWidget {
+  final int userId;
+  final List<Map<String, dynamic>> selectedProduk;
 
-  const CheckoutFirst({Key? key, required this.userId}) : super(key: key);
+  const CheckoutFirst({
+    Key? key,
+    required this.userId,
+    required this.selectedProduk,
+  }) : super(key: key);
+
+  @override
+  State<CheckoutFirst> createState() => _CheckoutFirstState();
+}
+
+class _CheckoutFirstState extends State<CheckoutFirst> {
+  late ProdukApi produkApi;
+  String? selectedPaymentMethod; // Track the selected payment method
+
+  @override
+  void initState() {
+    super.initState();
+    produkApi = ProdukApi(); // Initialize ProdukApi
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,49 +70,66 @@ class CheckoutFirst extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  children: [
-                    _buildProductItem(
-                      image: 'assets/items/garam.png',
-                      name: 'Garam 250g',
-                      quantity: '1x',
-                      price: 7000,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProductItem(
-                      image: 'assets/items/gula.png',
-                      name: 'Gula 1kg',
-                      quantity: '1x',
-                      price: 15000,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProductItem(
-                      image: 'assets/items/sendal.png',
-                      name: 'Sendal',
-                      quantity: '1x',
-                      price: 12000,
-                    ),
-                    const Divider(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          formatCurrency(34000),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  children: widget.selectedProduk.map<Widget>((produkItem) {
+                    final produk = produkItem['produk'] as ProdukModel;
+                    final quantity = produkItem['jumlah'] as int;
+
+                    return FutureBuilder<ProdukModel>(
+                      future: produkApi.fetchProdukById(produk.id),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator(); // Show loading while fetching data
+                        }
+
+                        if (snapshot.hasError) {
+                          return Text(
+                              'Error: ${snapshot.error}'); // Handle error
+                        }
+
+                        final produkData = snapshot.data;
+
+                        if (produkData == null) {
+                          return const Text(
+                              'Produk tidak ditemukan'); // Handle case where product is null
+                        }
+
+                        return Column(
+                          children: [
+                            _buildProductItem(
+                              image: produkData.gambarProduk ??
+                                  'https://via.placeholder.com/150',
+                              name: produkData.namaProduk,
+                              quantity: '$quantity x',
+                              price: (produkData.hargaJual * quantity).toInt(),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        );
+                      },
+                    );
+                  }).toList(),
                 ),
+              ),
+              const Divider(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    formatCurrency(_calculateTotalPrice()),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               const Text(
@@ -109,13 +147,33 @@ class CheckoutFirst extends StatelessWidget {
                     style: TextStyle(fontSize: 16),
                   ),
                   const Spacer(),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('CASH'),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'CASH',
+                        groupValue: selectedPaymentMethod,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedPaymentMethod = value;
+                          });
+                        },
+                      ),
+                      const Text('CASH'),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('QRIS'),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'QRIS',
+                        groupValue: selectedPaymentMethod,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedPaymentMethod = value;
+                          });
+                        },
+                      ),
+                      const Text('QRIS'),
+                    ],
                   ),
                 ],
               ),
@@ -125,11 +183,28 @@ class CheckoutFirst extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Checkout(userId: userId,)),
-                    );
+                    // Check if a payment method has been selected
+                    if (selectedPaymentMethod == null) {
+                      // Show a SnackBar if no payment method is selected
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Silahkan pilih metode pembayaran terlebih dahulu!'),
+                        ),
+                      );
+                    } else {
+                      // If a payment method is selected, navigate to the Checkout screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Checkout(
+                            userId: widget.userId,
+                            selectedProduk: widget.selectedProduk,
+                            paymentMethod: selectedPaymentMethod!,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -140,9 +215,10 @@ class CheckoutFirst extends StatelessWidget {
                   child: const Text(
                     'Konfirmasi',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -153,6 +229,7 @@ class CheckoutFirst extends StatelessWidget {
     );
   }
 
+  // Builds the product item row (with image, name, quantity, price)
   Widget _buildProductItem({
     required String image,
     required String name,
@@ -161,11 +238,11 @@ class CheckoutFirst extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Image.asset(
+        Image.network(
           image,
-          width: 60,
-          height: 60,
-          fit: BoxFit.contain,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -200,6 +277,18 @@ class CheckoutFirst extends StatelessWidget {
     );
   }
 
+  // Calculate total price dynamically based on selected products and quantities
+  int _calculateTotalPrice() {
+    int total = 0;
+    for (var produkItem in widget.selectedProduk) {
+      final produk = produkItem['produk'] as ProdukModel;
+      final quantity = produkItem['jumlah'] as int;
+      total += (produk.hargaJual * quantity).toInt();
+    }
+    return total;
+  }
+
+  // Format currency as IDR
   String formatCurrency(int amount) {
     final format =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);

@@ -1,143 +1,111 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:aplikasir/models/pengguna_model.dart';
+import 'package:aplikasir/api/pengguna_api.dart';
+import 'package:aplikasir/screen/profile/editakun.dart';
 
-class Akun extends StatelessWidget {
-  final String userId;
-  
+class ProfilPage extends StatefulWidget {
+  final int userId;
 
-  const Akun({Key? key, required this.userId}) : super(key: key);
+  const ProfilPage({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  State<ProfilPage> createState() => _ProfilPageState();
+}
+
+class _ProfilPageState extends State<ProfilPage> {
+  late Future<PenggunaModel> pengguna;
+
+  void initState() {
+    super.initState();
+    pengguna = PenggunaApi.getUser(widget.userId);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Warna latar belakang putih
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          'Profil',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black, // Ubah warna teks ke hitam
-          ),
-        ),
-        backgroundColor: Colors.white, // Warna AppBar putih
-        elevation: 0, // Hilangkan bayangan AppBar
-        centerTitle: true,
-        automaticallyImplyLeading: false,
+        title: const Text('Profil'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 20),
-          // Foto profil di kiri dan teks di kanan
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
+      body: FutureBuilder<PenggunaModel>(
+        future: pengguna,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('User not found'));
+          }
+
+          final userData = snapshot.data!;
+
+          return SingleChildScrollView(
+            child: Column(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: AssetImage('assets/images/profile_pic.png'), // Sesuaikan path gambar
+                const SizedBox(height: 20),
+                Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: userData.fotoProfil != null
+                        ? NetworkImage(userData.fotoProfil!)
+                        : const AssetImage('assets/avatar_placeholder.png') as ImageProvider,
+                  ),
                 ),
-                SizedBox(width: 20), // Jarak antara foto profil dan teks
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Aan Suhendar',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.black, // Sesuaikan warna teks
+                const SizedBox(height: 10),
+                Text(
+                  userData.nama,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  userData.nomorTelepon,
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.person, color: Colors.blue),
+                  title: const Text('Detail Profil'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditPage(userId: widget.userId),
+                      ),
+                    );
+                  },
+                ),
+                // Add more options or features here
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Handle logout
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'Keluar',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
-                    Text(
-                      'Pemilik',
-                      style: GoogleFonts.poppins(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
-          SizedBox(height: 30),
-          _buildProfileDetail('assets/icons/user_icon.png', 'Nama Pengguna', 'Aan suhendar'),
-          _buildProfileDetail('assets/icons/notelp_icon.png', 'Nomor Telepon', '+6285322009'),
-          _buildProfileDetail('assets/icons/store_icon.png', 'Nama Toko', 'Berkah jaya'),
-          SizedBox(height: 30),
-          Spacer(),
-          SizedBox(
-            width: 370,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                // Logika untuk tombol keluar
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.zero, // Menghapus padding vertikal
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Keluar',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 20), // Tambahkan jarak di bawah tombol
-        ],
+          );
+        },
       ),
-    );
-  }
-
-  Widget _buildProfileDetail(String imagePath, String title, String value) {
-    return Column(
-      children: [
-        Divider( // Garis warna abu di atas setiap detail profil
-          color: Colors.grey[300], // Sesuaikan warna garis
-          thickness: 1,
-          indent: 20, // Jarak indentasi dari kiri
-          endIndent: 20, // Jarak indentasi dari kanan
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            children: [
-              Image.asset(
-                imagePath,
-                width: 50, // Sesuaikan ukuran gambar
-                height: 50, // Berikan warna biru pada ikon agar sesuai
-              ),
-              SizedBox(width: 15), // Sesuaikan jarak antar ikon dan teks
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    value, // Ubah teks sesuai
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

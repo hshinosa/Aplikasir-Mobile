@@ -10,7 +10,7 @@ import '../laporan/laporan.dart';
 import 'package:aplikasir/screen/kredit/daftar_kredit.dart';
 
 class HomePage extends StatefulWidget {
-  final String userId; // Pastikan userId dideklarasikan dan diterima
+  final int userId; // Pastikan userId dideklarasikan dan diterima
   final int initialPageIndex; // Halaman awal
 
   const HomePage({Key? key, required this.userId, this.initialPageIndex = 0})
@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
       ),
       Produk(userId: widget.userId), // Kirim userId ke Produk
       Laporan(userId: widget.userId), // Kirim userId ke Laporan
-      Akun(userId: widget.userId), // Kirim userId ke Akun
+      ProfilPage(userId: widget.userId), // Kirim userId ke Akun
     ];
 
     _selectedIndex = widget.initialPageIndex;
@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
 class HomeContent extends StatefulWidget {
   final int selectedTab;
   final Function(int) onTabChange;
-  final String userId;
+  final int userId;
 
   HomeContent({Key? key, required this.userId, required this.selectedTab, required this.onTabChange})
       : super(key: key);
@@ -286,7 +286,7 @@ class _HomeContentState extends State<HomeContent> {
     return formatter.format(number);
   }
 
-  Widget _buildIconButton(String iconPath, String label, VoidCallback onTap, String userId) {
+  Widget _buildIconButton(String iconPath, String label, VoidCallback onTap, int userId) {
     return InkWell(
       onTap: () => onTap(),
       child: Container(

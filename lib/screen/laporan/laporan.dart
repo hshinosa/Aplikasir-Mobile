@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:aplikasir/screen/laporan/menulaporan.dart'; // Import menulaporan.dart where MenuLaporan is defined
 
 class Laporan extends StatelessWidget {
-  final String userId; // Tambahkan parameter userId
+  final int userId; // Tambahkan parameter userId
 
   const Laporan({super.key, required this.userId});
 
@@ -45,7 +45,8 @@ class Laporan extends StatelessWidget {
                 );
               },
             ),
-            _customDivider(context), // Custom divider for 80% width and color opacity
+            _customDivider(
+                context), // Custom divider for 80% width and color opacity
             ListTile(
               leading: Image.asset(
                 "assets/icons/graph_all.png",
@@ -61,7 +62,7 @@ class Laporan extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Menulaporan(),
+                    builder: (context) => Menulaporan(userId: userId),
                   ),
                 );
               },
@@ -78,9 +79,11 @@ class Laporan extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.8, // 80% width of the screen
+          width: MediaQuery.of(context).size.width *
+              0.8, // 80% width of the screen
           height: 1, // Height of the divider (thin)
-          color: Color(0xFFC6C8CB).withOpacity(0.5), // Custom color C6C8CB with 50% opacity
+          color: Color(0xFFC6C8CB)
+              .withOpacity(0.5), // Custom color C6C8CB with 50% opacity
         ),
       ),
     );

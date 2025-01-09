@@ -1,23 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: LaporanHarian(),
-    );
-  }
-}
+import 'package:aplikasir/api/laporan_api.dart';
+import 'package:aplikasir/models/laporan_model.dart';
 
 class LaporanHarian extends StatefulWidget {
-  const LaporanHarian({Key? key}) : super(key: key);
+  final int userId;
+  const LaporanHarian({super.key, required this.userId});
 
   @override
   State<LaporanHarian> createState() => _LaporanHarianState();
@@ -26,6 +15,21 @@ class LaporanHarian extends StatefulWidget {
 class _LaporanHarianState extends State<LaporanHarian> {
   int _selectedIndex = 0;
   final List<String> _tabTitles = ["Transaksi", "Laba Rugi", "Pendapatan"];
+  late Future<List<LaporanModel>> laporans;
+
+  @override
+  void initState() {
+    super.initState();
+    laporans = fetchUserLaporan(
+        widget.userId); // Panggil fungsi fetch data berdasarkan userId
+  }
+
+  Future<List<LaporanModel>> fetchUserLaporan(int userId) async {
+    final allLaporan = await LaporanApi.getLaporan();
+    return allLaporan
+        .where((item) => item.idPengguna.toString() == userId)
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class _LaporanHarianState extends State<LaporanHarian> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Handle back button press
+            Navigator.pop(context);
           },
         ),
         title: Text(
@@ -141,73 +145,78 @@ class _LaporanHarianState extends State<LaporanHarian> {
             color: Color.fromARGB(255, 212, 209, 209),
             thickness: 20,
           ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildTransactionTile("12:48:12", "06 Jun 2024", 10000, 10000),
-                const Divider(color: Colors.grey),
-                _buildTransactionTile("12:24:12", "06 Jun 2024", 10000, 10000),
-                const Divider(color: Colors.grey),
-                _buildTransactionTile("12:12:12", "06 Jun 2024", 10000, 10000),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionTile(
-      String time, String date, int revenue, int profit) {
-    final currencyFormat =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(time,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(date, style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Pendapatan',
-                          style: TextStyle(color: Colors.grey)),
-                      Text(currencyFormat.format(revenue),
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      const Text('Laba Rugi',
-                          style: TextStyle(color: Colors.grey)),
-                      Text(currencyFormat.format(profit),
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ],
+            child: FutureBuilder<List<LaporanModel>>(
+              future: laporans,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: Text('Gagal memuat data: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('Data tidak tersedia'));
+                } else {
+                  final List<LaporanModel> laporan = snapshot.data!;
+
+                  return ListView.separated(
+                    itemCount: laporan.length,
+                    separatorBuilder: (_, __) => Divider(color: Colors.grey),
+                    itemBuilder: (context, index) {
+                      final item = laporan[index];
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ID: ${item.id}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text('Total Penjualan',
+                                      style: TextStyle(color: Colors.grey)),
+                                  Text(
+                                    NumberFormat.currency(
+                                      locale: 'id_ID',
+                                      symbol: 'Rp ',
+                                      decimalDigits: 2,
+                                    ).format(item.totalPenjualan),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text('Total Transaksi',
+                                      style: TextStyle(color: Colors.grey)),
+                                  Text(
+                                    '${item.totalTransaksi} transaksi',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
             ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.delete, color: Colors.red),
-              SizedBox(height: 16),
-              Icon(Icons.arrow_forward, size: 16),
-            ],
           ),
         ],
       ),

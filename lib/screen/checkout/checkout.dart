@@ -1,10 +1,21 @@
 import 'package:aplikasir/screen/checkout/checkout_berhasil.dart';
 import 'package:flutter/material.dart';
+import 'package:aplikasir/api/transaksi_api.dart';
+import 'package:aplikasir/models/transaksi_model.dart';
+import 'package:aplikasir/models/produk_model.dart';
+import 'package:intl/intl.dart'; // Untuk format currency
 
 class Checkout extends StatefulWidget {
-  final String userId;
+  final int userId;
+  final List<Map<String, dynamic>> selectedProduk;
+  final String paymentMethod; // Menambahkan metode pembayaran
 
-  const Checkout({super.key, required this.userId});
+  const Checkout({
+    Key? key,
+    required this.userId,
+    required this.selectedProduk,
+    required this.paymentMethod,
+  }) : super(key: key);
 
   @override
   State<Checkout> createState() => _CheckoutState();
@@ -13,7 +24,32 @@ class Checkout extends StatefulWidget {
 class _CheckoutState extends State<Checkout> {
   String amount = '0';
   bool isCredit = false;
-  final int totalAmount = 74000; // Store the total amount
+  late int totalAmount; // Total jumlah yang perlu dibayar
+
+  @override
+  void initState() {
+    super.initState();
+    totalAmount =
+        _calculateTotalAmount(); // Menghitung total amount berdasarkan produk yang dipilih
+  }
+
+  // Menghitung total harga berdasarkan produk yang dipilih
+  int _calculateTotalAmount() {
+    int total = 0;
+    for (var produkItem in widget.selectedProduk) {
+      final produk = produkItem['produk'] as ProdukModel;
+      final quantity = produkItem['jumlah'] as int;
+      total += (produk.hargaJual * quantity).toInt(); // Cast to int
+    }
+    return total;
+  }
+
+  // Format mata uang untuk menampilkan harga
+  String formatCurrency(int amount) {
+    final format =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return format.format(amount);
+  }
 
   void onNumberPressed(String value) {
     setState(() {
@@ -52,14 +88,54 @@ class _CheckoutState extends State<Checkout> {
     }
   }
 
-  // Navigate to success screen
-  void navigateToSuccess() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CheckoutTransaksiBerhasil(userId: widget.userId,),
-      ),
+  void navigateToSuccess() async {
+    // Menyusun transaksi baru berdasarkan produk yang dipilih
+    final transaksiBaru = TransaksiModel(
+      id: 0, // Temporary ID, harus diganti dengan ID yang dibuat oleh API jika ada
+      idPengguna: widget.userId,
+      metodePembayaran: widget.paymentMethod,
+      jenisTransaksi: isCredit ? "kredit" : "pembayaran",
+      details: widget.selectedProduk.map((produkItem) {
+        final produk = produkItem['produk'] as ProdukModel;
+        final quantity = produkItem['jumlah'] as int;
+
+        // Menyusun format 'details' yang sesuai dengan model
+        return {
+          'id_produk': produk.id, // ID produk
+          'nama_produk': produk.namaProduk, // Nama produk
+          'harga_satuan': produk.hargaJual.toString(), // Harga produk
+          'kuantitas': quantity, // Jumlah produk
+          'subtotal':
+              (produk.hargaJual * quantity).toString(), // Subtotal per produk
+        };
+      }).toList(),
     );
+
+    // Kirim transaksi ke server
+    final transaksiApi = TransaksiApi();
+    bool success = await transaksiApi.tambahTransaksi(transaksiBaru);
+
+    if (success) {
+      final totalKembalian =
+          (int.parse(amount.replaceAll('.', '')) - totalAmount).toDouble();
+
+      // Navigasi ke halaman sukses
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CheckoutTransaksiBerhasil(
+            userId: widget.userId,
+            totalKembalian: totalKembalian,
+            idTransaksi: transaksiBaru
+                .id, // Placeholder, ganti dengan ID aktual dari backend
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menambahkan transaksi')),
+      );
+    }
   }
 
   Widget buildKeyButton(String label, {VoidCallback? onPressed}) {
@@ -99,8 +175,13 @@ class _CheckoutState extends State<Checkout> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.arrow_back,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Icon(
+                      Icons.arrow_back,
+                    ),
                   ),
                   Spacer(),
                   Center(
@@ -117,14 +198,18 @@ class _CheckoutState extends State<Checkout> {
               ),
 
               const SizedBox(height: 20),
-              // Amount Display
-              Text(
-                'Total : Rp ${totalAmount.toString().replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]}.',
-                    )}',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+              // Total Amount
+              Center(
+                child: Text(
+                  'Total Harga: ${formatCurrency(totalAmount)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
+
               const SizedBox(height: 8),
               Text(
                 'Rp ${amount == '0' ? '0' : amount.replaceAllMapped(
@@ -137,7 +222,9 @@ class _CheckoutState extends State<Checkout> {
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(height: 10),
+
+              const SizedBox(height: 10),
+
               // Credit Checkbox
               Container(
                 width: double.infinity,
@@ -156,11 +243,12 @@ class _CheckoutState extends State<Checkout> {
                         });
                       },
                     ),
-                    const Text('Kredit'),
+                    Text("Kredit"),
                   ],
                 ),
               ),
-              // Custom Keypad Grid
+
+              // Keypad
               Expanded(
                 child: Column(
                   children: [
@@ -196,19 +284,20 @@ class _CheckoutState extends State<Checkout> {
                           if (showConfirmButton)
                             Expanded(
                               child: TextButton(
-                                  onPressed: navigateToSuccess,
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.zero,
-                                    ),
-                                    padding: EdgeInsets.zero,
+                                onPressed: navigateToSuccess,
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.zero,
                                   ),
-                                  child: Image.asset(
-                                    'assets/icons/Check.png',
-                                    height: 40,
-                                    width: 40,
-                                  )),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: Image.asset(
+                                  'assets/icons/Check.png',
+                                  height: 40,
+                                  width: 40,
+                                ),
+                              ),
                             )
                           else
                             const Expanded(child: SizedBox()),

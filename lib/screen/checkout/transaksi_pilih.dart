@@ -1,10 +1,25 @@
 import 'package:aplikasir/screen/checkout/checkout_first.dart';
 import 'package:flutter/material.dart';
+import 'package:aplikasir/models/produk_model.dart';
+import 'package:aplikasir/api/produk_api.dart';
+import 'package:intl/intl.dart';
 
-class TransaksiScreen extends StatelessWidget {
-  final String userId;
+class TransaksiScreen extends StatefulWidget {
+  final int userId;
 
-  TransaksiScreen({Key? key, required this.userId}) : super(key: key);
+  const TransaksiScreen({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  _TransaksiScreenState createState() => _TransaksiScreenState();
+}
+
+class _TransaksiScreenState extends State<TransaksiScreen> {
+  final ProdukApi produkApi = ProdukApi();
+  final Map<int, int> selectedProducts =
+      {}; // Key: Produk ID, Value: Jumlah Dipilih
+  List<ProdukModel> produkList = [];
+  List<ProdukModel> filteredProdukList = [];
+  String searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +28,7 @@ class TransaksiScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: BackButton(),
+        leading: const BackButton(color: Colors.black),
         title: const Text(
           'Transaksi',
           style: TextStyle(
@@ -28,8 +43,14 @@ class TransaksiScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                  _filterProduk();
+                });
+              },
               decoration: InputDecoration(
-                hintText: 'Cari nama atau kode produk',
+                hintText: 'Cari nama produk',
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                 filled: true,
@@ -42,36 +63,70 @@ class TransaksiScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              padding: const EdgeInsets.all(16),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: [
-                _buildProductCard(
-                  'assets/items/garam.png',
-                  'Garam 250g',
-                  'Stock Barang 20',
-                ),
-                _buildProductCard(
-                  'assets/items/gula.png',
-                  'Gula 1 Kg',
-                  'Stock Barang 20',
-                ),
-                _buildProductCard(
-                  'assets/items/sendal.png',
-                  'Sendal',
-                  'Stock Barang 20',
-                ),
-              ],
+            child: FutureBuilder<List<ProdukModel>>(
+              future: produkApi.fetchProduk(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('Tidak ada produk yang tersedia.'));
+                }
+
+                produkList = snapshot.data!;
+                _filterProduk();
+
+                return GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredProdukList.length,
+                  itemBuilder: (context, index) {
+                    final produk = filteredProdukList[index];
+                    return _buildProductCard(context, produk);
+                  },
+                );
+              },
             ),
           ),
           InkWell(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CheckoutFirst(userId: userId,)),
-              );
+              // Check if there are selected products
+              if (_getTotalProducts() == 0) {
+                // Show Snackbar if no product is selected
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Silakan pilih produk terlebih dahulu.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else {
+                // Proceed to checkout if there are selected products
+                final selectedProdukList =
+                    selectedProducts.entries.map((entry) {
+                  final produk =
+                      produkList.firstWhere((p) => p.id == entry.key);
+                  return {
+                    'produk': produk,
+                    'jumlah': entry.value,
+                  };
+                }).toList();
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CheckoutFirst(
+                      userId: widget.userId,
+                      selectedProduk: selectedProdukList, // Corrected variable
+                    ),
+                  ),
+                );
+              }
             },
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -81,14 +136,14 @@ class TransaksiScreen extends StatelessWidget {
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'Jumlah',
                         style: TextStyle(color: Colors.white),
                       ),
                       Text(
-                        '0 Produk',
-                        style: TextStyle(
+                        '${_getTotalProducts()} Produk',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -97,17 +152,17 @@ class TransaksiScreen extends StatelessWidget {
                     ],
                   ),
                   Row(
-                    children: const [
+                    children: [
                       Text(
-                        'Rp 0',
-                        style: TextStyle(
+                        'Rp ${_getTotalPrice()}',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(
+                      const SizedBox(width: 8),
+                      const Icon(
                         Icons.chevron_right,
                         color: Colors.white,
                       ),
@@ -116,53 +171,131 @@ class TransaksiScreen extends StatelessWidget {
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProductCard(String imagePath, String title, String stock) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+  Widget _buildProductCard(BuildContext context, ProdukModel produk) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final jumlahDipilih = selectedProducts[produk.id] ?? 0;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            imagePath,
-            height: 40,
-            width: 40,
-            fit: BoxFit.contain,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.network(
+                produk.gambarProduk ?? 'https://via.placeholder.com/150',
+                height: 50,
+                width: 50,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                produk.namaProduk,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                'Harga : ${formatCurrency(produk.hargaJual.toInt())}',
+                style: const TextStyle(
+                  color: Color.fromRGBO(40, 109, 225, 1),
+                  fontSize: 10,
+                ),
+              ),
+              Text(
+                'Stok : ${produk.jumlahProduk}',
+                style: const TextStyle(
+                  color: Color.fromRGBO(40, 109, 225, 1),
+                  fontSize: 10,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      if (jumlahDipilih > 0) {
+                        setState(() {
+                          selectedProducts[produk.id] = jumlahDipilih - 1;
+                        });
+                        _updateState();
+                      }
+                    },
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  Text(
+                    '$jumlahDipilih',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      if (jumlahDipilih < produk.jumlahProduk) {
+                        setState(() {
+                          selectedProducts[produk.id] = jumlahDipilih + 1;
+                        });
+                        _updateState();
+                      }
+                    },
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            stock,
-            style: const TextStyle(
-              color: Color.fromRGBO(40, 109, 225, 1),
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  void _filterProduk() {
+    filteredProdukList = produkList
+        .where((produk) =>
+            produk.namaProduk.toLowerCase().contains(searchQuery) ||
+            produk.kodeProduk.toLowerCase().contains(searchQuery))
+        .toList();
+  }
+
+  int _getTotalProducts() {
+    return selectedProducts.values.fold(0, (sum, item) => sum + item);
+  }
+
+  double _getTotalPrice() {
+    return selectedProducts.entries.fold(
+      0.0,
+      (sum, entry) {
+        final produk = produkList.firstWhere((p) => p.id == entry.key);
+        return sum + (produk.hargaJual * entry.value);
+      },
+    );
+  }
+
+  void _updateState() {
+    setState(() {});
+  }
+
+  String formatCurrency(int amount) {
+    final format =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return format.format(amount);
   }
 }

@@ -1,13 +1,20 @@
-import 'checkout_struk_transaksi.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../home/homepage.dart';
+import 'checkout_struk_transaksi.dart';
 
 class CheckoutTransaksiBerhasil extends StatelessWidget {
-  final String userId;
+  final double totalKembalian;
+  final int idTransaksi;
+  final int userId;
 
-  const CheckoutTransaksiBerhasil({Key? key, required this.userId}) : super(key: key);
+  const CheckoutTransaksiBerhasil({
+    Key? key,
+    required this.userId,
+    required this.totalKembalian,
+    required this.idTransaksi,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +29,14 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                 width: 100,
                 height: 100,
               ),
-              const SizedBox(
-                height: 14,
-              ),
+              const SizedBox(height: 14),
               Text(
                 "Transaksi Berhasil",
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                 ),
               ),
-              const SizedBox(
-                height: 40,
-              ),
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -55,22 +58,25 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 8, right: 20),
                     child: Text(
                       formatCurrency(
-                        6000,
-                      ),
+                          totalKembalian), // Menampilkan total kembalian
                       style: GoogleFonts.poppins(fontSize: 18),
                     ),
                   )
                 ],
               ),
-              const SizedBox(
-                height: 31,
+              const SizedBox(height: 31),
+              Text(
+                'ID Transaksi: $idTransaksi',
+                style: GoogleFonts.poppins(fontSize: 18),
               ),
+              const SizedBox(height: 31),
               TextButton(
                 onPressed: () {
                   // Navigasi ke HomePage ketika tombol Transaksi Baru ditekan
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => HomePage(userId: userId)),
+                    MaterialPageRoute(
+                        builder: (context) => HomePage(userId: userId)),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -95,10 +101,13 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
               const SizedBox(height: 23),
               OutlinedButton(
                 onPressed: () {
+                  // Navigasi ke CheckoutStrukTransaksi
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CheckoutStrukTransaksi(),
+                      builder: (context) => CheckoutStrukTransaksi(
+                        userId: userId, // Diteruskan ke CheckoutStrukTransaksi
+                      ),
                     ),
                   );
                 },
@@ -129,7 +138,7 @@ class CheckoutTransaksiBerhasil extends StatelessWidget {
   }
 }
 
-String formatCurrency(int amount) {
+String formatCurrency(double amount) {
   final format =
       NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   return format.format(amount);
